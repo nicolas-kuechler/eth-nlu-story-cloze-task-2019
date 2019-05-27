@@ -31,7 +31,7 @@ for epoch in range(N_EPOCH):
 
      # read BERT prediction results from prev epoch and combine with cross product dataset to generate new dataset for this epoch
      print(f"READING PREDICTIONS FROM: {prev_epoch_dir}")
-     df_preds = pd.read_csv(f"{prev_epoch_dir}/test_results.tsv", sep='\t', names=['prob0', 'prob1'])
+     df_preds = pd.read_csv(f"{prev_epoch_dir}/cross_results.tsv", sep='\t', names=['prob0', 'prob1'])
      print(f"COMBINE PREDICTIONS WITH CROSS PROD DATASET...")
      df = pd.concat([df_cross, df_preds], axis = 1)
 
@@ -58,9 +58,11 @@ for epoch in range(N_EPOCH):
      start = time.time()
      
      bert_out = subprocess.check_output(["python", "code/model/bert/run_classifier.py", "--task_name=SCT", 
-                                                    "--do_train=true", 
-                                                    "--do_eval=true", 
-                                                    "--do_predict=true",
+                                                    "--do_train=true",
+                                                    "--do_eval=true",
+                                                    "--do_predict_cross=true",
+                                                    "--do_predict_valid=false",
+                                                    "--do_predict_test=false",
                                                     f"--train_data_dir={cur_epoch_dir}",
                                                     f"--data_dir={DATA_DIR}",
                                                     f"--vocab_file={BERT_BASE_DIR}/vocab.txt",
