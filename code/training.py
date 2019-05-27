@@ -12,6 +12,7 @@ DATA_DIR = "./data"
 
 MAX_SEQ_LENGTH = 128
 TRAIN_BATCH_SIZE = 32
+PREDICT_BATCH_SIZE = 32
 LEARNING_RATE = "2e-5"
 
 RUN_ID = str(int(time.time())) # use current timestamp as runid
@@ -38,12 +39,12 @@ for epoch in range(N_EPOCH):
      # find most likely prediction per story start
      print(f"FIND MOST LIKELY WRONG PREDICTION PER STORY START...")
      start = time.time()
-     ds_train_max_false = df.sort_values("prob0", ascending=False).drop_duplicates(["story_start_id"])
+     ds_train_max_false = df.sort_values("prob1", ascending=False).drop_duplicates(["story_start_id"])
      print(f"finished: elapsed time = {time.time()-start}")
 
      # combine samples with highest prediction and false label with the true samples
      print(f"CREATING NEW TRAIN DATASET...")
-     ds_train = ds_train_max_false.append(ds_train_true, ignore_index=True) 
+     ds_train = ds_train_max_false.append(ds_train_true, ignore_index=True)
 
      # shuffle new training dataset
      print(f"SHUFFLE NEW TRAIN DATASET...")
@@ -56,8 +57,8 @@ for epoch in range(N_EPOCH):
      # finetune BERT classifier with current train dataset
      print(f"START FINE-TUNING OF BERT FOR ONE EPOCH WITH NEW DATASET...")
      start = time.time()
-     
-     bert_out = subprocess.check_output(["python", "code/model/bert/run_classifier.py", "--task_name=SCT", 
+
+     bert_out = subprocess.check_output(["python", "code/model/bert/run_classifier.py", "--task_name=SCT",
                                                     "--do_train=true",
                                                     "--do_eval=true",
                                                     "--do_predict_cross=true",
@@ -70,15 +71,14 @@ for epoch in range(N_EPOCH):
                                                     f"--init_checkpoint={prev_epoch_dir}/bert_model.ckpt",
                                                     f"--max_seq_length={MAX_SEQ_LENGTH}",
                                                     f"--train_batch_size={TRAIN_BATCH_SIZE}",
+                                                    f"--predict_batch_size={PREDICT_BATCH_SIZE}",
                                                     f"--learning_rate={LEARNING_RATE}",
-                                                    f"--num_train_epochs=0.1", # TODO [nku] change
+                                                    f"--num_train_epochs=1",
                                                     f"--output_dir={cur_epoch_dir}"])
 
-     #print(bert_out)        
-     
-     
+
+
      print(f"FINISHED FINE-TUNING EPOCH OF BERT: elapsed time = {time.time()-start}")
 
      # adjust prev epoch dir
      prev_epoch_dir = cur_epoch_dir
-    
