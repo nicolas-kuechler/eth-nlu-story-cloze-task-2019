@@ -13,7 +13,7 @@ def get_train_dataset_true(path_train, shuffle=False):
     ds = []
 
     print("Processing Training Dataset...")
-    for idx, storyid, storytitle, s1, s2, s3, s4, s5 in tqdm(df.itertuples(), total=df.shape[0]):
+    for idx, storyid, storytitle, s1, s2, s3, s4, s5 in df.itertuples():
         story_start = ' '.join([s1, s2, s3, s4])
         
         # generate true sample
