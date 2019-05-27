@@ -6,7 +6,7 @@ from dataset_generation import dataset
 
 N_EPOCH = 5
 
-OUTPUT_DIR = "."
+OUTPUT_DIR = "/cluster/scratch/kunicola"
 BERT_BASE_DIR = "./data/uncased_L-12_H-768_A-12"
 DATA_DIR = "./data"
 
