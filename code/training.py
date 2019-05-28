@@ -1,5 +1,6 @@
 import pandas as pd
 import time, os, subprocess
+import tensorflow as tf
 
 from dataset_generation import dataset
 
@@ -21,6 +22,7 @@ prev_epoch_dir = f"{DATA_DIR}/init"
 ds_train_true = dataset.get_train_dataset_true(path_train=f"{DATA_DIR}/train_stories.csv", shuffle=False)
 df_cross = pd.read_csv(f"{DATA_DIR}/ds_cross_product_false.tsv", sep='\t')
 
+checkpoint = f"{DATA_DIR}/init/bert_model.ckpt"
 
 for epoch in range(N_EPOCH):
      print(f"RUNNING FINE-TUNING EPOCH: {epoch+1}...")
@@ -58,6 +60,7 @@ for epoch in range(N_EPOCH):
      print(f"START FINE-TUNING OF BERT FOR ONE EPOCH WITH NEW DATASET...")
      start = time.time()
 
+
      bert_out = subprocess.check_output(["python", "code/model/bert/run_classifier.py", "--task_name=SCT",
                                                     "--do_train=true",
                                                     "--do_eval=true",
@@ -68,7 +71,7 @@ for epoch in range(N_EPOCH):
                                                     f"--data_dir={DATA_DIR}",
                                                     f"--vocab_file={BERT_BASE_DIR}/vocab.txt",
                                                     f"--bert_config_file={BERT_BASE_DIR}/bert_config.json",
-                                                    f"--init_checkpoint={prev_epoch_dir}/bert_model.ckpt",
+                                                    f"--init_checkpoint={checkpoint}",
                                                     f"--max_seq_length={MAX_SEQ_LENGTH}",
                                                     f"--train_batch_size={TRAIN_BATCH_SIZE}",
                                                     f"--predict_batch_size={PREDICT_BATCH_SIZE}",
@@ -79,6 +82,8 @@ for epoch in range(N_EPOCH):
 
 
      print(f"FINISHED FINE-TUNING EPOCH OF BERT: elapsed time = {time.time()-start}")
+
+     checkpoint = tf.train.latest_checkpoint(checkpoint_dir=cur_epoch_dir)
 
      # adjust prev epoch dir
      prev_epoch_dir = cur_epoch_dir
