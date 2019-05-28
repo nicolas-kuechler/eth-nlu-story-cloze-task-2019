@@ -1043,14 +1043,14 @@ def main(_):
       tf.logging.info("***** Predict results *****")
       for (i, prediction) in enumerate(result):
         probabilities = prediction["probabilities"]
-        if i >= num_actual_predict_examples:
-          break
+        #if i >= num_actual_predict_examples:
+        #  break
         output_line = "\t".join(
             str(class_probability)
             for class_probability in probabilities) + "\n"
         writer.write(output_line)
         num_written_lines += 1
-    assert num_written_lines == num_actual_predict_examples
+    #assert num_written_lines == num_actual_predict_examples
 
   if FLAGS.do_predict_cross:
     predict_file = os.path.join(FLAGS.data_dir, "predict_cross.tf_record")
@@ -1097,14 +1097,14 @@ def main(_):
       tf.logging.info("***** Predict results *****")
       for (i, prediction) in enumerate(result):
         probabilities = prediction["probabilities"]
-        if i >= num_actual_predict_examples:
-          break
+        #if i >= num_actual_predict_examples:
+        #  break
         output_line = "\t".join(
             str(class_probability)
             for class_probability in probabilities) + "\n"
         writer.write(output_line)
         num_written_lines += 1
-    assert num_written_lines == num_actual_predict_examples
+    #assert num_written_lines == num_actual_predict_examples
 
   if FLAGS.do_predict_test:
     predict_file = os.path.join(FLAGS.data_dir, "predict_test.tf_record")
@@ -1151,14 +1151,14 @@ def main(_):
       tf.logging.info("***** Predict results *****")
       for (i, prediction) in enumerate(result):
         probabilities = prediction["probabilities"]
-        if i >= num_actual_predict_examples:
-          break
+        #if i >= num_actual_predict_examples:
+        #  break
         output_line = "\t".join(
             str(class_probability)
             for class_probability in probabilities) + "\n"
         writer.write(output_line)
         num_written_lines += 1
-    assert num_written_lines == num_actual_predict_examples
+    #assert num_written_lines == num_actual_predict_examples
 
 
 if __name__ == "__main__":
