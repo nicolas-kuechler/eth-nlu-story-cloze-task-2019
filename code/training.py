@@ -64,7 +64,7 @@ for epoch in range(N_EPOCH):
                                                     "--do_train=true",
                                                     "--do_eval=true",
                                                     "--do_predict_cross=true",
-                                                    "--do_predict_valid=true",
+                                                    "--do_predict_valid=false",
                                                     "--do_predict_test=false",
                                                     f"--train_data_dir={cur_epoch_dir}",
                                                     f"--data_dir={DATA_DIR}",
