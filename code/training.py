@@ -1,13 +1,22 @@
 import pandas as pd
-import time, os, subprocess
+import time, os, subprocess, argparse
 import tensorflow as tf
 
 import dataset
 
 
-N_EPOCH = 5
+parser = argparse.ArgumentParser(description='')
+parser.add_argument('--epochs', help='number of epochs', type=int, default=4)
+parser.add_argument('--output_dir', help='output directory (suggested to use scratch dir on cluster)')
+args = parser.parse_args()
 
-OUTPUT_DIR = "/cluster/scratch/kunicola"
+N_EPOCH = args.epochs
+
+OUTPUT_DIR = args.output_dir
+
+print(f"Run Training for {N_EPOCH} epochs")
+print(f"Output Directory: {OUTPUT_DIR}")
+
 BERT_BASE_DIR = "./data/uncased_L-12_H-768_A-12"
 DATA_DIR = "./data"
 

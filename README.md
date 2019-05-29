@@ -1,16 +1,23 @@
-NLU Project 2
+# NLU Project 2
 
-download pretrained model and unzip (base model):
-cd data
-curl -o bert.zip https://storage.googleapis.com/bert_models/2018_10_18/uncased_L-12_H-768_A-12.zip
-unzip bert.zip
-rm bert.zip
+## Usage Instructions
 
-for large model:
-curl -o bert.zip https://storage.googleapis.com/bert_models/2018_10_18/uncased_L-24_H-1024_A-16.zip
+Download, unzip and place data folder in root of the project: https://polybox.ethz.ch/index.php/s/vGgC6Dv3jofwR1x
 
-to run:
-#bert NLI
-bsub -R "rusage[mem=16000,ngpus_excl_p=1]" < run_bert_sct.sh
-Bert SCT
-bsub -R "rusage[mem=16000,ngpus_excl_p=1]" < run.sh
+### Running on Leonhard Cluster
+`module load gcc/4.8.5 python_gpu/3.6.4 hdf5 eth_proxy`
+`module load cudnn/7.2`
+
+use a virtual environment with the requirements from the root directory:
+`pip install -r path/to/requirements.txt`
+
+
+#### Run Training (Fine-Tuning with BERT)
+`bsub -n 8 -W 12:00 -R "rusage[mem=16000, ngpus_excl_p=1]" python code/training.py --epochs=4 --output_dir=/cluster/scratch/kunicola`
+
+(from the root of the project)
+
+#### Run Prediction
+`bsub -n 2 -W 4:00 -R "rusage[mem=16000, ngpus_excl_p=1]" python code/prediction.py --epoch_dir=/cluster/scratch/kunicola/runs/1559038542/epoch3`
+
+(from the root of the project)
