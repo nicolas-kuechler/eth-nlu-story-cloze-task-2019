@@ -243,7 +243,8 @@ class SCTProcessor(DataProcessor):
 
   def get_test_examples(self, data_dir):
     """See base class."""
-    raise NotImplementedError()
+    return self._create_examples(
+        self._read_tsv(os.path.join(data_dir, "ds_test.tsv")),"test")
 
   def get_labels(self):
     """See base class."""
