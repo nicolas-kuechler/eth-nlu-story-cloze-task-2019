@@ -26,7 +26,7 @@ def get_train_dataset_true(path_train, shuffle=False):
 
     return ds
 
-def get_valid_dataset(path_valid, shuffle=True):
+def get_valid_dataset(path_valid, shuffle=False):
     df = pd.read_csv(path_valid, index_col=False)
 
     ds = []
@@ -54,6 +54,9 @@ def get_valid_dataset(path_valid, shuffle=True):
         random.shuffle(ds)
 
     return ds
+
+def get_test_dataset(path_test, shuffle=False):
+    return get_valid_dataset(path_valid=path_test, shuffle=shuffle)
 
 def get_crossproduct_dataset_false(path_train, path_mapping, path_names):
     """
@@ -165,6 +168,9 @@ def main():
 
     ds_valid = get_valid_dataset(path_valid='./data/cloze_test_val__spring2016 - cloze_test_ALL_val.csv', shuffle=False)
     save_dataset_as_tsv(ds_valid, path="./data/ds_valid.tsv")
+
+    ds_test = get_test_dataset(path_test='./data/cloze_test_test__spring2016 - cloze_test_ALL_test.csv', shuffle=False)
+    save_dataset_as_tsv(ds_test, path="./data/ds_test.tsv")
 
     ds_cross_product_false = get_crossproduct_dataset_false(path_train='./data/train_stories.csv', path_mapping='./data/train_stories_top_20_most_similar_titles.csv', path_names='./data/first_names.csv')
     save_dataset_as_tsv(ds_cross_product_false, path="./data/ds_cross_product_false.tsv")

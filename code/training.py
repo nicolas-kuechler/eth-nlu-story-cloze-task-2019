@@ -60,12 +60,11 @@ for epoch in range(N_EPOCH):
      print(f"START FINE-TUNING OF BERT FOR ONE EPOCH WITH NEW DATASET...")
      start = time.time()
 
-
      bert_out = subprocess.check_output(["python", "code/model/bert/run_classifier.py", "--task_name=SCT",
                                                     "--do_train=true",
                                                     "--do_eval=true",
                                                     "--do_predict_cross=true",
-                                                    "--do_predict_valid=false",
+                                                    "--do_predict_valid=true",
                                                     "--do_predict_test=false",
                                                     f"--train_data_dir={cur_epoch_dir}",
                                                     f"--data_dir={DATA_DIR}",
