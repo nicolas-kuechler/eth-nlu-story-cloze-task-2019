@@ -2,7 +2,7 @@ import pandas as pd
 import time, os, subprocess
 import tensorflow as tf
 
-from dataset_generation import dataset
+import dataset
 
 
 N_EPOCH = 5
