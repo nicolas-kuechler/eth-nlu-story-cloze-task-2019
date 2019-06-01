@@ -228,7 +228,20 @@ def save_dataset_as_tsv(dataset, path):
     df = pd.DataFrame(dataset)
     df.to_csv(path, sep='\t', index=False, columns=['story_start_id', 'story_end_id', 'story_start', 'story_end', 'label'])
 
+def ablation_top1_train(path_train='./data/train_stories.csv',path_mapping='./data/train_stories_top_1_most_similar_titles.csv',path_names='./data/first_names.csv'):
+    ds_train_max_false = get_crossproduct_dataset_false(path_train=path_train, path_mapping=path_mapping, path_names=path_names)
+    ds_train_true = get_train_dataset_true(path_train=path_train, shuffle=False)
 
+    ds_train_max_false = pd.DataFrame(ds_train_max_false)
+
+    print(f"CREATING NEW TRAIN DATASET...")
+    ds_train = ds_train_max_false.append(ds_train_true, ignore_index=True)
+
+    print(f"SHUFFLE NEW TRAIN DATASET...")
+    ds_train = ds_train.sample(frac=1).reset_index(drop=True)
+
+    save_dataset_as_tsv(ds_train, path="./data/ds_train.tsv")
+    return ds_train
 
 def main():
     generate_and_save_init_test_results(path_cross="./data/ds_cross_product_false.tsv",  path_test_results="./data/test_results.tsv")
@@ -246,4 +259,5 @@ def main():
     save_dataset_as_tsv(ds_cross_product_false, path="./data/ds_cross_product_false.tsv")
 
 if __name__ == '__main__':
-    main()
+    print(ablation_top1_train())
+    #main()ds_cross_product_false
