@@ -224,6 +224,15 @@ def _extract_person(text, names):
         if 'I ' in text:
             return 'I'
 
+def save_dataset_as_tsv_list(dataset, path):
+    print(f'length of dataset: {len(dataset)}')
+    #for i in dataset:
+    #    if not isinstance(i, dict):
+    #        print(f'some sample is NOT a dictionary: {i}')
+    dataset = [item for item in dataset if item != None]
+    df = pd.DataFrame.from_dict(dataset, orient='columns')
+    df.to_csv(path, sep='\t', index=False, columns=['story_start_id', 'story_end_id', 'story_start', 'story_end', 'label'])
+
 def save_dataset_as_tsv(dataset, path):
     df = pd.DataFrame(dataset)
     df.to_csv(path, sep='\t', index=False, columns=['story_start_id', 'story_end_id', 'story_start', 'story_end', 'label'])
