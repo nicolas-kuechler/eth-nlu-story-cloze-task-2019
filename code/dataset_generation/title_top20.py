@@ -4,6 +4,10 @@ import pandas as pd
 import numpy as np
 import csv
 
+##!!!!Needs to be run from  root directory
+
+
+
 #Import all the dependencies
 from gensim.models.doc2vec import Doc2Vec, TaggedDocument
 from nltk.tokenize import word_tokenize
@@ -12,7 +16,7 @@ import nltk
 
 #from global_variables import PATH_TRAIN
 
-def main():
+def main(topn=20):
 
     PATH_TRAIN = "./data/train_stories.csv"
 
@@ -26,7 +30,7 @@ def main():
     result = []
     for i in range(len(training_data)):
         tag = str(i)
-        tfh = model.docvecs.most_similar(tag, topn=20)
+        tfh = model.docvecs.most_similar(tag, topn=topn)
         tfh_tags = [[tag,i[0]] for i in tfh]
         result += tfh_tags
 
@@ -39,7 +43,7 @@ def main():
     res = np.array(result)
     print(f'res shape: {res.shape}')
 
-    pd.DataFrame(res).to_csv('top_20_titles.csv', header=None, index=None)
+    pd.DataFrame(res).to_csv(f'data/top_{topn}_titles.csv', header=None, index=None)
 
 if __name__ == '__main__':
-    main()
+    main(1)

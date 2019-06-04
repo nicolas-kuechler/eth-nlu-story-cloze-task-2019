@@ -15,6 +15,13 @@ lsf.*
 **/logs/
 **/tf_ckpts/
 
+
+# Environments
+.venv_tf2
+venv_tf2/
+venv_tf2.bak/
+
+
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json

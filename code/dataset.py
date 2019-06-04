@@ -1,6 +1,7 @@
 import pandas as pd
 import random
 from tqdm import tqdm
+import numpy as np
 
 
 def get_train_dataset_true(path_train, shuffle=False):
@@ -25,6 +26,75 @@ def get_train_dataset_true(path_train, shuffle=False):
         random.shuffle(ds)
 
     return ds
+
+def get_fixed_dataset(path_train, name_replacement, shuffle=False, path_names=None):
+
+    df = pd.read_csv(path_train, index_col=False)
+
+    ds = []
+
+    names = pd.read_csv(path_names, index_col=False)
+    names = set(names['Name'])
+
+    ## sanity check for the distribution of the random ints
+    #bins = np.arange(df.shape[0])
+    #bars = np.zeros(df.shape[0])
+    #fig = plt.figure()
+    #ax = fig.add_subplot(111)
+
+    print("Processing Training Dataset...")
+    for idx, storyid, storytitle, s1, s2, s3, s4, s5 in tqdm(df.itertuples(), total=df.shape[0]):
+       
+        story_start = ' '.join([s1, s2, s3, s4])
+        
+        # generate wrong sample
+        false_ind = np.random.randint(0,df.shape[0])
+        #bars[false_ind] += 1
+        
+        false_story_end = df.loc[false_ind, 'sentence5']
+        false_story_id = df.loc[false_ind, 'storyid']
+        true_story_end = s5
+
+        if name_replacement:
+            false_story_end = _adjust_false_story_end(story_start=story_start, true_story_end=true_story_end, false_story_end=false_story_end, names=names)
+
+        negative_sample = {"story_start_id":storyid, "story_end_id":false_story_id, "story_start":story_start, "story_end": false_story_end, "label":0}
+        ds.append(negative_sample)
+       
+    print(f'length of result: {len(ds)}')
+    
+    #ax.bar(bins, bars, width=0.8)
+    #plt.show()
+    
+    if shuffle:
+        random.shuffle(ds)
+    
+
+    return ds
+
+def get_train_dataset_false(path_train):
+    training_data = pd.read_csv(path_train, index_col=False)
+    first_4 = np.array(training_data.loc[:, 'sentence1':'sentence4'].values.tolist())
+    f = lambda x: " ".join(x)
+    first_4 = np.array(list(map(f, first_4)))
+
+    endings = np.array(training_data.loc[:, 'sentence5'])
+    
+    np.random.seed(1)
+    indices = np.random.permutation(len(first_4))
+
+    data_set = np.column_stack((first_4[np.arange(len(first_4))], endings[indices],np.zeros(len(indices))))
+
+    index_col = np.arange(len(data_set))
+    data_set = np.column_stack((index_col, data_set))
+
+    tuplify = lambda x: tuple(x)
+    res_list = list(map(tuplify, data_set.tolist()))
+    
+    #get a valid label
+    val_label = lambda x: (x[0],x[1],x[2],str(int(float(x[3]))))
+    res_list = list(map(val_label, res_list))
+    return res_list
 
 def get_valid_dataset(path_valid, shuffle=False):
     df = pd.read_csv(path_valid, index_col=False)
@@ -175,11 +245,33 @@ def _extract_person(text, names):
         if 'I ' in text:
             return 'I'
 
+def save_dataset_as_tsv_list(dataset, path):
+    print(f'length of dataset: {len(dataset)}')
+    #for i in dataset:
+    #    if not isinstance(i, dict):
+    #        print(f'some sample is NOT a dictionary: {i}')
+    dataset = [item for item in dataset if item != None]
+    df = pd.DataFrame.from_dict(dataset, orient='columns')
+    df.to_csv(path, sep='\t', index=False, columns=['story_start_id', 'story_end_id', 'story_start', 'story_end', 'label'])
+
 def save_dataset_as_tsv(dataset, path):
     df = pd.DataFrame(dataset)
     df.to_csv(path, sep='\t', index=False, columns=['story_start_id', 'story_end_id', 'story_start', 'story_end', 'label'])
 
+def ablation_top1_train(path_train='./data/train_stories.csv',path_mapping='./data/train_stories_top_1_most_similar_titles.csv',path_names='./data/first_names.csv'):
+    ds_train_max_false = get_crossproduct_dataset_false(path_train=path_train, path_mapping=path_mapping, path_names=path_names)
+    ds_train_true = get_train_dataset_true(path_train=path_train, shuffle=False)
 
+    ds_train_max_false = pd.DataFrame(ds_train_max_false)
+
+    print(f"CREATING NEW TRAIN DATASET...")
+    ds_train = ds_train_max_false.append(ds_train_true, ignore_index=True)
+
+    print(f"SHUFFLE NEW TRAIN DATASET...")
+    ds_train = ds_train.sample(frac=1).reset_index(drop=True)
+
+    save_dataset_as_tsv(ds_train, path="./data/ds_train.tsv")
+    return ds_train
 
 def main():
     generate_and_save_init_test_results(path_cross="./data/ds_cross_product_false.tsv",  path_test_results="./data/test_results.tsv")
@@ -200,4 +292,5 @@ def main():
     save_dataset_as_tsv(ds_cross_product_false, path="./data/ds_cross_product_false.tsv")
 
 if __name__ == '__main__':
-    main()
+    print(ablation_top1_train())
+    #main()ds_cross_product_false
