@@ -22,29 +22,31 @@ BERT_BASE_DIR = "./data/uncased_L-12_H-768_A-12"
 DATA_DIR = "./data"
 
 MAX_SEQ_LENGTH = 128
-TRAIN_BATCH_SIZE = 32
+TRAIN_BATCH_SIZE = 16 #32 #TODO set if needed
 PREDICT_BATCH_SIZE = 32
 LEARNING_RATE = "2e-5"
 
 RUN_ID = str(int(time.time())) # use current timestamp as runid
 prev_epoch_dir = f"{DATA_DIR}/init"
 
-print(f"CREATING NEW TRAIN DATASET...")
-ds_train_true = dataset.get_train_dataset_true(path_train=f"{DATA_DIR}/train_stories.csv", shuffle=False)
-ds_train_false = dataset.get_fixed_ds(path_train_true=f'{DATA_DIR}/train_stories.csv', path_train_false=f'{DATA_DIR}/false_dataset.csv', name_replacement=False, path_names='data/first_names.csv',shuffle=False)
-ds_train = ds_train_true + ds_train_false
-print(f'length of ds_train: {len(ds_train)}')
-print(f'sample: {ds_train[88159:88163]}')
-
-# shuffle new training dataset
-print(f"SHUFFLE NEW TRAIN DATASET...")
-#ds_train = ds_train.sample(frac=1).reset_index(drop=True)
-random.shuffle(ds_train)
 
 #top1 ablation study 
 ablation_1 = True
 if ablation_1:
-    ds_train = df.from_csv("./data/ds_train.tsv", sep='\t', index=False, columns=['story_start_id', 'story_end_id', 'story_start', 'story_end', 'label'])
+    ds_train = pd.read_csv("./data/ds_train.tsv", sep='\t', header=0, usecols=['story_start_id', 'story_end_id', 'story_start', 'story_end', 'label'])
+else:
+    print(f"CREATING NEW TRAIN DATASET...")
+    ds_train_true = dataset.get_train_dataset_true(path_train=f"{DATA_DIR}/train_stories.csv", shuffle=False)
+    ds_train_false = dataset.get_fixed_dataset(path_train_true=f'{DATA_DIR}/train_stories.csv', path_train_false=f'{DATA_DIR}/false_dataset.csv', name_replacement=False, path_names='data/first_names.csv',shuffle=False)
+    ds_train = ds_train_true + ds_train_false
+    print(f'length of ds_train: {len(ds_train)}')
+    print(f'sample: {ds_train[88159:88163]}')
+
+    # shuffle new training dataset
+    print(f"SHUFFLE NEW TRAIN DATASET...")
+    #ds_train = ds_train.sample(frac=1).reset_index(drop=True)
+    random.shuffle(ds_train)
+
 
 
 

@@ -29,18 +29,18 @@ mode ='train' #input('mode (load / train)? ')
 
 # Set file names
 file_train = "./data/ds_train.tsv"
-file_val = './data/ds_val.tsv'
+file_val = './data/ds_valid.tsv'
 #TODO remove for actual training
 #file_train = file_val
-file_predictions = os.environ['SCRATCH']+'/ucl/pred.tsv'
+file_predictions = os.environ['SCRATCH']+'/data/ucl/pred.tsv'
 
-dir_save_np = os.environ['SCRATCH']+'/ucl/data/'
-checkpoint_directory = os.environ['SCRATCH']+'/ucl/'
+dir_save_np = os.environ['SCRATCH']+'/data/ucl/data/'
+checkpoint_directory = os.environ['SCRATCH']+'/data/ucl/'
 
 
 # Initialise hyperparameters
 r = random.Random()
-lim_unigram = 2000
+lim_unigram = 20000
 target_size = 2
 hidden_size = 100
 train_keep_prob = 0.6
@@ -50,7 +50,7 @@ clip_ratio = 5
 batch_size_train = 500
 epochs = 50
 
-load_processed_data=True
+load_processed_data=False
 save_model_when_training=True
 
 # In comand line run and visit localhost:6006
