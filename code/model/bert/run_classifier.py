@@ -82,6 +82,10 @@ flags.DEFINE_bool(
     "Whether to run the model in inference mode on the test set.")
 
 flags.DEFINE_bool(
+    "do_predict_eth_test", False,
+    "Whether to run the model in inference mode on the test set.")
+
+flags.DEFINE_bool(
     "do_predict_valid", False,
     "Whether to run the model in inference mode on the validation set.")
 
@@ -207,6 +211,10 @@ class DataProcessor(object):
     """Gets a collection of `InputExample`s for prediction."""
     raise NotImplementedError()
 
+  def get_eth_test_examples(self, data_dir):
+    """Gets a collection of `InputExample`s for prediction."""
+    raise NotImplementedError()
+
   def get_labels(self):
     """Gets the list of labels for this data set."""
     raise NotImplementedError()
@@ -245,6 +253,11 @@ class SCTProcessor(DataProcessor):
     """See base class."""
     return self._create_examples(
         self._read_tsv(os.path.join(data_dir, "ds_test.tsv")),"test")
+  
+  def get_eth_test_examples(self, data_dir):
+    """See base class."""
+    return self._create_examples(
+        self._read_tsv(os.path.join(data_dir, "ds_eth_test.tsv")),"eth_test")
 
   def get_labels(self):
     """See base class."""
@@ -860,9 +873,9 @@ def main(_):
   tokenization.validate_case_matches_checkpoint(FLAGS.do_lower_case,
                                                 FLAGS.init_checkpoint)
 
-  if not FLAGS.do_train and not FLAGS.do_eval and not FLAGS.do_predict_test and not FLAGS.do_predict_cross and not FLAGS.do_predict_valid:
+  if not FLAGS.do_train and not FLAGS.do_eval and not FLAGS.do_predict_test and not FLAGS.do_predict_cross and not FLAGS.do_predict_valid and not FLAGS.do_predict_eth_test:
     raise ValueError(
-        "At least one of `do_train`, `do_eval`, `do_predict_test', `do_predict_cross', `do_predict_valid' must be True.")
+        "At least one of `do_train`, `do_eval`, `do_predict_test', `do_predict_cross', `do_predict_valid', do_predict_eth_test' must be True.")
 
   bert_config = modeling.BertConfig.from_json_file(FLAGS.bert_config_file)
 
@@ -1148,6 +1161,60 @@ def main(_):
     result = estimator.predict(input_fn=predict_input_fn)
 
     output_predict_file = os.path.join(FLAGS.output_dir, "test_results.tsv")
+    with tf.gfile.GFile(output_predict_file, "w") as writer:
+      num_written_lines = 0
+      tf.logging.info("***** Predict results *****")
+      for (i, prediction) in enumerate(result):
+        probabilities = prediction["probabilities"]
+        #if i >= num_actual_predict_examples:
+        #  break
+        output_line = "\t".join(
+            str(class_probability)
+            for class_probability in probabilities) + "\n"
+        writer.write(output_line)
+        num_written_lines += 1
+    #assert num_written_lines == num_actual_predict_examples
+  
+  if FLAGS.do_predict_eth_test:
+    predict_file = os.path.join(FLAGS.data_dir, "predict_eth_test.tf_record")
+
+    if not os.path.isfile(predict_file):
+      predict_examples = processor.get_eth_test_examples(FLAGS.data_dir)
+      num_actual_predict_examples = len(predict_examples)
+      if FLAGS.use_tpu:
+        # TPU requires a fixed batch size for all batches, therefore the number
+        # of examples must be a multiple of the batch size, or else examples
+        # will get dropped. So we pad with fake examples which are ignored
+        # later on.
+        while len(predict_examples) % FLAGS.predict_batch_size != 0:
+          predict_examples.append(PaddingInputExample())
+
+      
+      file_based_convert_examples_to_features(predict_examples, label_list,
+                                                FLAGS.max_seq_length, tokenizer,
+                                                predict_file)
+
+      tf.logging.info("***** Running prediction on eth test dataset*****")
+      tf.logging.info("  Num examples = %d (%d actual, %d padding)",
+                      len(predict_examples), num_actual_predict_examples,
+                      len(predict_examples) - num_actual_predict_examples)
+      tf.logging.info("  Batch size = %d", FLAGS.predict_batch_size)
+      
+    else:
+      tf.logging.info("***** Running prediction on eth test dataset*****")
+      tf.logging.info("  restoring tf records from: %s", predict_file)
+      tf.logging.info("  Batch size = %d", FLAGS.predict_batch_size)
+      
+    predict_drop_remainder = True if FLAGS.use_tpu else False
+    predict_input_fn = file_based_input_fn_builder(
+        input_file=predict_file,
+        seq_length=FLAGS.max_seq_length,
+        is_training=False,
+        drop_remainder=predict_drop_remainder)
+
+    result = estimator.predict(input_fn=predict_input_fn)
+
+    output_predict_file = os.path.join(FLAGS.output_dir, "eth_test_results.tsv")
     with tf.gfile.GFile(output_predict_file, "w") as writer:
       num_written_lines = 0
       tf.logging.info("***** Predict results *****")

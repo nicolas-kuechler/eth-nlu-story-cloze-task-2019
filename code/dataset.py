@@ -58,6 +58,27 @@ def get_valid_dataset(path_valid, shuffle=False):
 def get_test_dataset(path_test, shuffle=False):
     return get_valid_dataset(path_valid=path_test, shuffle=shuffle)
 
+def get_eth_test_dataset(path_test):
+    df = pd.read_csv(path_test, index_col=False)
+
+    ds = []
+
+    print("Processing ETH TEST Dataset...")
+    for idx, s1, s2, s3, s4, ending1, ending2 in tqdm(df.itertuples(), total=df.shape[0]):
+        story_start = ' '.join([s1, s2, s3, s4])
+
+        story_id = str(idx)
+        # label all as zero because BERT requires valid label
+        sample1 = {"story_start_id": story_id, "story_end_id": story_id + "_1", "story_start":story_start, "story_end": ending1, "label":0}
+        ds.append(sample1)
+
+        sample2 = {"story_start_id": story_id, "story_end_id": story_id + "_2", "story_start":story_start, "story_end": ending2, "label":0}
+        ds.append(sample2)
+
+    return ds
+
+
+
 def get_crossproduct_dataset_false(path_train, path_mapping, path_names):
     """
     generate a cross product dataset with all endings for a sample frm the file path_train defined in the file path_mapping
@@ -169,8 +190,11 @@ def main():
     ds_valid = get_valid_dataset(path_valid='./data/cloze_test_val__spring2016 - cloze_test_ALL_val.csv', shuffle=False)
     save_dataset_as_tsv(ds_valid, path="./data/ds_valid.tsv")
 
-    ds_test = get_test_dataset(path_test='./data/cloze_test_test__spring2016 - cloze_test_ALL_test.csv', shuffle=False)
+    ds_test = get_test_dataset(path_test='./data/test_for_report-stories_labels.csv', shuffle=False)
     save_dataset_as_tsv(ds_test, path="./data/ds_test.tsv")
+
+    ds_eth_test = get_eth_test_dataset(path_test='./data/test-stories.csv')
+    save_dataset_as_tsv(ds_eth_test, path="./data/ds_eth_test.tsv")
 
     ds_cross_product_false = get_crossproduct_dataset_false(path_train='./data/train_stories.csv', path_mapping='./data/train_stories_top_20_most_similar_titles.csv', path_names='./data/first_names.csv')
     save_dataset_as_tsv(ds_cross_product_false, path="./data/ds_cross_product_false.tsv")

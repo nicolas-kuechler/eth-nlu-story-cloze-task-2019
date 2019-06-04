@@ -22,6 +22,7 @@ def run_bert_pred(epoch_dir):
                                                         "--do_predict_cross=false",
                                                         "--do_predict_valid=true",
                                                         "--do_predict_test=true",
+                                                        "--do_predict_eth_test=true",
                                                         f"--train_data_dir={epoch_dir}",
                                                         f"--data_dir={DATA_DIR}",
                                                         f"--vocab_file={BERT_BASE_DIR}/vocab.txt",
@@ -77,6 +78,42 @@ def convert_bert_pred(ds_path, ds_path_flat, ds_path_flat_valid_results, ds_outp
 
     return accuracy
 
+def convert_bert_pred_eth_test(ds_path, ds_path_flat, ds_path_flat_bert_pred, ds_output_path, ds_submission_path):
+    df = pd.read_csv(ds_path)
+    df['InputStoryid'] = df.index
+    df_flat = pd.read_csv(ds_path_flat, sep='\t')
+    df_flat_preds = pd.read_csv(ds_path_flat_bert_pred, sep='\t', names=['prob0', 'prob1'])
+
+    assert(df_flat.shape[0]==df_flat_preds.shape[0])
+
+    # join predictions to df_flat
+    df_flat = pd.concat([df_flat, df_flat_preds], axis = 1)
+
+    def _convert(x):
+        # find probability of both endings
+        prob_ending1 = df_flat[(df_flat['story_start_id']==x['InputStoryid']) & (df_flat['story_end']==x['RandomFifthSentenceQuiz1'])]['prob1'].values
+        prob_ending2 =  df_flat[(df_flat['story_start_id']==x['InputStoryid']) & (df_flat['story_end']==x['RandomFifthSentenceQuiz2'])]['prob1'].values
+    
+        assert(len(prob_ending1)==1)
+        assert(len(prob_ending2)==1)
+        x['ProbQuiz1'] = prob_ending1[0]
+        x['ProbQuiz2'] = prob_ending2[0]
+
+        # predict ending with higher probability
+        x['PredRightEnding'] = 1 if x['ProbQuiz1'] > x['ProbQuiz2'] else 2
+
+        return x
+
+    
+    # add predictions of the two endings to the original dataset
+    df = df.apply(_convert,axis=1)
+
+    df.to_csv(ds_output_path, index=False)
+
+    df['PredRightEnding'].to_csv(ds_submission_path, index=False, header=False)
+
+
+
 
 parser = argparse.ArgumentParser(description='')
 parser.add_argument('--epoch_dir', help='running directory of epoch')
@@ -97,14 +134,22 @@ valid_accuracy = convert_bert_pred(ds_path="./data/cloze_test_val__spring2016 - 
                     ds_output_path=f"{epoch_dir}/valid_results_converted.csv")
 
 print("Converting Test Results...")
-test_accuracy = convert_bert_pred(ds_path="./data/cloze_test_test__spring2016 - cloze_test_ALL_test.csv",
+test_accuracy = convert_bert_pred(ds_path="./data/test_for_report-stories_labels.csv",
                     ds_path_flat="./data/ds_test.tsv",
                     ds_path_flat_valid_results=f"{epoch_dir}/test_results.tsv",
                     ds_output_path=f"{epoch_dir}/test_results_converted.csv")
 
+print("Converting ETH Test Results...")
+convert_bert_pred_eth_test(ds_path="./data/test-stories.csv",
+                    ds_path_flat="./data/ds_eth_test.tsv",
+                    ds_path_flat_bert_pred=f"{epoch_dir}/eth_test_results.tsv",
+                    ds_output_path=f"{epoch_dir}/eth_test_results_converted.csv",
+                    ds_submission_path=f"{epoch_dir}/eth_test_submission.csv")
+
+
 with open(f"{epoch_dir}/prediction_results_converted.txt", "w") as text_file:
     text_file.write(f"Validation Accuracy: {valid_accuracy}")
-    text_file.write(f"Test Accuracy: {test_accuracy}")
+    text_file.write(f"\nTest Accuracy: {test_accuracy}")
 
 
 
