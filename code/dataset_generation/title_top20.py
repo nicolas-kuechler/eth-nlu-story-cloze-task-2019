@@ -43,7 +43,7 @@ def main(topn=20):
     res = np.array(result)
     print(f'res shape: {res.shape}')
 
-    pd.DataFrame(res).to_csv(f'data/top_{topn}_titles.csv', header=None, index=None)
+    pd.DataFrame(res).to_csv(f'data/train_stories_top_{topn}_most_similar_titles.csv', header=None, index=None)
 
 if __name__ == '__main__':
     main(1)
