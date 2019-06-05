@@ -25,7 +25,7 @@ use a virtual environment with the requirements from the root directory:
 (from the root of the project)
 
 #### Run Ablation Study
-`bsub -n 8 -W 12:00 -R "rusage[mem=16000, ngpus_excl_p=1]" python code/ablation.py --epochs 3 --output_dir $SCRATCH --ablations 1 2 3`
+`bsub -n 8 -W 12:00 -R "rusage[mem=16000, ngpus_excl_p=1]" python code/ablation.py --epochs 3 --output_dir $SCRATCH --ablations 1 2 3 4`
 
 (from the root of the project)
 
