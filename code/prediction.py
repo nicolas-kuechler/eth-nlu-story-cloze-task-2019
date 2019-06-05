@@ -4,7 +4,6 @@ import tensorflow as tf
 
 
 
-
 def run_bert_pred(epoch_dir):
     BERT_BASE_DIR = "./data/uncased_L-12_H-768_A-12"
     DATA_DIR = "./data"
@@ -113,43 +112,49 @@ def convert_bert_pred_eth_test(ds_path, ds_path_flat, ds_path_flat_bert_pred, ds
     df['PredRightEnding'].to_csv(ds_submission_path, index=False, header=False)
 
 
+def convert_bert_results(epoch_dir):
+    # convert the predictions for the validation set
+    print("Converting Validation Results...")
+    valid_accuracy = convert_bert_pred(ds_path="./data/cloze_test_val__spring2016 - cloze_test_ALL_val.csv", 
+                        ds_path_flat="./data/ds_valid.tsv", 
+                        ds_path_flat_valid_results=f"{epoch_dir}/valid_results.tsv",
+                        ds_output_path=f"{epoch_dir}/valid_results_converted.csv")
+
+    print("Converting Test Results...")
+    test_accuracy = convert_bert_pred(ds_path="./data/test_for_report-stories_labels.csv",
+                        ds_path_flat="./data/ds_test.tsv",
+                        ds_path_flat_valid_results=f"{epoch_dir}/test_results.tsv",
+                        ds_output_path=f"{epoch_dir}/test_results_converted.csv")
+
+    print("Converting ETH Test Results...")
+    convert_bert_pred_eth_test(ds_path="./data/test-stories.csv",
+                        ds_path_flat="./data/ds_eth_test.tsv",
+                        ds_path_flat_bert_pred=f"{epoch_dir}/eth_test_results.tsv",
+                        ds_output_path=f"{epoch_dir}/eth_test_results_converted.csv",
+                        ds_submission_path=f"{epoch_dir}/eth_test_submission.csv")
 
 
-parser = argparse.ArgumentParser(description='')
-parser.add_argument('--epoch_dir', help='running directory of epoch')
-args = parser.parse_args()
-
-epoch_dir = args.epoch_dir
-
-#epoch_dir = "./runs/1559038542/epoch3"
-print(f"Using Epoch Dir: {epoch_dir}")
-
-run_bert_pred(epoch_dir=epoch_dir)
-
-# convert the predictions for the validation set
-print("Converting Validation Results...")
-valid_accuracy = convert_bert_pred(ds_path="./data/cloze_test_val__spring2016 - cloze_test_ALL_val.csv", 
-                    ds_path_flat="./data/ds_valid.tsv", 
-                    ds_path_flat_valid_results=f"{epoch_dir}/valid_results.tsv",
-                    ds_output_path=f"{epoch_dir}/valid_results_converted.csv")
-
-print("Converting Test Results...")
-test_accuracy = convert_bert_pred(ds_path="./data/test_for_report-stories_labels.csv",
-                    ds_path_flat="./data/ds_test.tsv",
-                    ds_path_flat_valid_results=f"{epoch_dir}/test_results.tsv",
-                    ds_output_path=f"{epoch_dir}/test_results_converted.csv")
-
-print("Converting ETH Test Results...")
-convert_bert_pred_eth_test(ds_path="./data/test-stories.csv",
-                    ds_path_flat="./data/ds_eth_test.tsv",
-                    ds_path_flat_bert_pred=f"{epoch_dir}/eth_test_results.tsv",
-                    ds_output_path=f"{epoch_dir}/eth_test_results_converted.csv",
-                    ds_submission_path=f"{epoch_dir}/eth_test_submission.csv")
+    with open(f"{epoch_dir}/prediction_results_converted.txt", "w") as text_file:
+        text_file.write(f"Validation Accuracy: {valid_accuracy}")
+        text_file.write(f"\nTest Accuracy: {test_accuracy}")
 
 
-with open(f"{epoch_dir}/prediction_results_converted.txt", "w") as text_file:
-    text_file.write(f"Validation Accuracy: {valid_accuracy}")
-    text_file.write(f"\nTest Accuracy: {test_accuracy}")
+def main():
+    parser = argparse.ArgumentParser(description='')
+    parser.add_argument('--epoch_dir', help='running directory of epoch')
+    args = parser.parse_args()
+
+    epoch_dir = args.epoch_dir
+
+    print(f"Using Epoch Dir: {epoch_dir}")
+
+    run_bert_pred(epoch_dir=epoch_dir)
+    convert_bert_results(epoch_dir=epoch_dir)
+
+if __name__ == '__main__':
+    main()
+
+
 
 
 

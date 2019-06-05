@@ -4,9 +4,67 @@ from tqdm import tqdm
 import numpy as np
 
 
-def get_train_dataset_true(path_train, shuffle=False):
+
+"""
+  _______        _       _             
+ |__   __|      (_)     (_)            
+    | |_ __ __ _ _ _ __  _ _ __   __ _ 
+    | | '__/ _` | | '_ \| | '_ \ / _` |
+    | | | | (_| | | | | | | | | | (_| |
+    |_|_|  \__,_|_|_| |_|_|_| |_|\__, |
+                                  __/ |
+                                 |___/ 
+"""
+
+def get_train_dataset(path_train, path_names=None, shuffle=True):
+    """
+    get the training dataset with randomly sampled endings and possible name replacement
     """
     
+    df = pd.read_csv(path_train, index_col=False)
+    ds = []
+
+    # load name replacement dict
+    if path_names:
+        names = pd.read_csv(path_names, index_col=False)
+        names = set(names['Name'])
+
+    np.random.seed(1234)
+
+    print("Processing Training Dataset...")
+    for idx, storyid, storytitle, s1, s2, s3, s4, s5 in tqdm(df.itertuples(), total=df.shape[0]):
+       
+        story_start = ' '.join([s1, s2, s3, s4])
+        true_story_end = s5
+        
+        # generate false sample by using random ending
+        while True:
+            false_ind = np.random.randint(0, df.shape[0])
+            if false_ind != idx:
+                break
+
+        false_story_end = df.loc[false_ind, 'sentence5']
+        false_story_id = df.loc[false_ind, 'storyid']
+
+        # do name replacement
+        if path_names:
+            false_story_end = _adjust_false_story_end(story_start=story_start, true_story_end=true_story_end, false_story_end=false_story_end, names=names)
+
+        negative_sample = {"story_start_id":storyid, "story_end_id":false_story_id, "story_start":story_start, "story_end": false_story_end, "label":0}
+        ds.append(negative_sample)
+
+        # generate true sample
+        positive_sample = {"story_start_id":storyid, "story_end_id":storyid, "story_start":story_start, "story_end": true_story_end, "label":1}
+        ds.append(positive_sample)
+       
+    if shuffle:
+        random.shuffle(ds)
+
+    return ds
+
+def get_train_dataset_true(path_train, shuffle=False):
+    """
+    generate the training dataset containing only the true samples (label=1)
     """
 
     df = pd.read_csv(path_train, index_col=False)
@@ -27,76 +85,91 @@ def get_train_dataset_true(path_train, shuffle=False):
 
     return ds
 
-def get_fixed_dataset(path_train, name_replacement, shuffle=False, path_names=None):
+def get_crossproduct_dataset_false(path_train, path_mapping, path_names):
+    """
+    generate a cross product dataset with all endings for a sample frm the file path_train defined in the file path_mapping
+    """
 
     df = pd.read_csv(path_train, index_col=False)
 
-    ds = []
+    df_mapping = pd.read_csv(path_mapping, index_col=False, names=['start_idx', 'end_idx'])
 
     names = pd.read_csv(path_names, index_col=False)
     names = set(names['Name'])
 
-    ## sanity check for the distribution of the random ints
-    #bins = np.arange(df.shape[0])
-    #bars = np.zeros(df.shape[0])
-    #fig = plt.figure()
-    #ax = fig.add_subplot(111)
+    ds = []
 
-    print("Processing Training Dataset...")
+    print("Processing Cross Product Train Dataset...")
     for idx, storyid, storytitle, s1, s2, s3, s4, s5 in tqdm(df.itertuples(), total=df.shape[0]):
-       
         story_start = ' '.join([s1, s2, s3, s4])
         
-        # generate wrong sample
-        false_ind = np.random.randint(0,df.shape[0])
-        #bars[false_ind] += 1
-        
-        false_story_end = df.loc[false_ind, 'sentence5']
-        false_story_id = df.loc[false_ind, 'storyid']
+        # look up which are the most similar 
+        sample_mappings = df_mapping.loc[df_mapping['start_idx'] == idx]
         true_story_end = s5
 
-        if name_replacement:
-            false_story_end = _adjust_false_story_end(story_start=story_start, true_story_end=true_story_end, false_story_end=false_story_end, names=names)
-
-        negative_sample = {"story_start_id":storyid, "story_end_id":false_story_id, "story_start":story_start, "story_end": false_story_end, "label":0}
-        ds.append(negative_sample)
+        false_endings = df.loc[sample_mappings['end_idx']][['storyid', 'sentence5']]
        
-    print(f'length of result: {len(ds)}')
-    
-    #ax.bar(bins, bars, width=0.8)
-    #plt.show()
-    
+        # generate all false samples
+        for _, false_storyid, false_story_end in tqdm(false_endings.itertuples(), total=false_endings.shape[0]):
+            false_story_end = _adjust_false_story_end(story_start=story_start, true_story_end=true_story_end, false_story_end=false_story_end, names=names)
+            negative_sample = {"story_start_id":storyid, "story_end_id":false_storyid, "story_start":story_start, "story_end": false_story_end, "label":0}
+            ds.append(negative_sample)
+        
+    return ds
+
+def get_ablation1_dataset(path_train='./data/train_stories.csv', shuffle=True):
+    """
+    dataset using random false endings
+    """
+    return get_train_dataset(path_train=path_train, shuffle=shuffle)
+
+def get_ablation2_dataset(path_train='./data/train_stories.csv', path_names='./data/first_names.csv', shuffle=True):
+    """
+    dataset using random false endings
+    + name replacement
+    """
+    return get_train_dataset(path_train=path_train, path_names=path_names, shuffle=shuffle)
+
+def get_ablation3_dataset(path_train='./data/train_stories.csv', path_mapping='./data/train_stories_top_1_most_similar_titles.csv', path_names='./data/first_names.csv', shuffle=True):
+    """
+    dataset using top 1 most similar title ending
+    + name replacement
+    """
+
+    ds_false = get_crossproduct_dataset_false(path_train, path_mapping, path_names)
+    ds_true = get_train_dataset_true(path_train, shuffle=False)
+
+    assert(len(ds_false)==len(ds_true))
+
+    ds = ds_false + ds_true
+
     if shuffle:
         random.shuffle(ds)
-    
 
     return ds
 
-def get_train_dataset_false(path_train):
-    training_data = pd.read_csv(path_train, index_col=False)
-    first_4 = np.array(training_data.loc[:, 'sentence1':'sentence4'].values.tolist())
-    f = lambda x: " ".join(x)
-    first_4 = np.array(list(map(f, first_4)))
-
-    endings = np.array(training_data.loc[:, 'sentence5'])
+def get_ablation4_dataset(path_train='./data/train_stories.csv', path_mapping='./data/train_stories_top_1_most_similar_stories.csv', path_names='./data/first_names.csv', shuffle=True):
+    """
+    dataset using top 1 most similar story ending
+    + name replacement
+    """
+    return get_ablation3_dataset(path_train, path_mapping, path_names, shuffle)
     
-    np.random.seed(1)
-    indices = np.random.permutation(len(first_4))
 
-    data_set = np.column_stack((first_4[np.arange(len(first_4))], endings[indices],np.zeros(len(indices))))
-
-    index_col = np.arange(len(data_set))
-    data_set = np.column_stack((index_col, data_set))
-
-    tuplify = lambda x: tuple(x)
-    res_list = list(map(tuplify, data_set.tolist()))
-    
-    #get a valid label
-    val_label = lambda x: (x[0],x[1],x[2],str(int(float(x[3]))))
-    res_list = list(map(val_label, res_list))
-    return res_list
+"""
+ __      __   _ _     _       _   _                        _______        _   
+ \ \    / /  | (_)   | |     | | (_)               ___    |__   __|      | |  
+  \ \  / /_ _| |_  __| | __ _| |_ _  ___  _ __    ( _ )      | | ___  ___| |_ 
+   \ \/ / _` | | |/ _` |/ _` | __| |/ _ \| '_ \   / _ \/\    | |/ _ \/ __| __|
+    \  / (_| | | | (_| | (_| | |_| | (_) | | | | | (_>  <    | |  __/\__ \ |_ 
+     \/ \__,_|_|_|\__,_|\__,_|\__|_|\___/|_| |_|  \___/\/    |_|\___||___/\__|
+                                                                              
+"""
 
 def get_valid_dataset(path_valid, shuffle=False):
+    """
+    Standard Validation Dataset for Story Cloze Task
+    """
     df = pd.read_csv(path_valid, index_col=False)
 
     ds = []
@@ -126,9 +199,15 @@ def get_valid_dataset(path_valid, shuffle=False):
     return ds
 
 def get_test_dataset(path_test, shuffle=False):
+    """
+    Standard Test Dataset for Story Cloze Task
+    """
     return get_valid_dataset(path_valid=path_test, shuffle=shuffle)
 
 def get_eth_test_dataset(path_test):
+    """
+    Test Dataset provided by ETH (without label)
+    """
     df = pd.read_csv(path_test, index_col=False)
 
     ds = []
@@ -147,41 +226,10 @@ def get_eth_test_dataset(path_test):
 
     return ds
 
-
-
-def get_crossproduct_dataset_false(path_train, path_mapping, path_names):
-    """
-    generate a cross product dataset with all endings for a sample frm the file path_train defined in the file path_mapping
-    """
-
-    df = pd.read_csv(path_train, index_col=False)
-
-    df_mapping = pd.read_csv(path_mapping, index_col=False, names=['start_idx', 'end_idx'])
-
-    names = pd.read_csv(path_names, index_col=False)
-    names = set(names['Name'])
-
-    ds = []
-
-    print("Processing Cross Product Train Dataset...")
-    for idx, storyid, storytitle, s1, s2, s3, s4, s5 in tqdm(df.itertuples(), total=df.shape[0]):
-        story_start = ' '.join([s1, s2, s3, s4])
-        
-        # look up which are the 500 most similar 
-        sample_mappings = df_mapping.loc[df_mapping['start_idx'] == idx]
-        true_story_end = s5
-
-        false_endings = df.loc[sample_mappings['end_idx']][['storyid', 'sentence5']]
-       
-        # generate all false samples
-        for _, false_storyid, false_story_end in tqdm(false_endings.itertuples(), total=false_endings.shape[0]):
-            false_story_end = _adjust_false_story_end(story_start=story_start, true_story_end=true_story_end, false_story_end=false_story_end, names=names)
-            negative_sample = {"story_start_id":storyid, "story_end_id":false_storyid, "story_start":story_start, "story_end": false_story_end, "label":0}
-            ds.append(negative_sample)
-        
-    return ds
-
 def generate_and_save_init_test_results(path_cross, path_test_results):
+    """
+    Generates and stores a file with prob0 and prob1 = 0.5 
+    """
 
     df = pd.read_csv(path_cross, sep='\t', index_col=False)
 
@@ -191,8 +239,15 @@ def generate_and_save_init_test_results(path_cross, path_test_results):
 
     df.to_csv(path_test_results, sep='\t', index=False, header=False)
 
-
-
+"""
+  _____                            _    _                 _     _   _      
+ |  __ \                          | |  | |               (_)   | | (_)     
+ | |__) |__ _ __ ___  ___  _ __   | |__| | ___ _   _ _ __ _ ___| |_ _  ___ 
+ |  ___/ _ \ '__/ __|/ _ \| '_ \  |  __  |/ _ \ | | | '__| / __| __| |/ __|
+ | |  |  __/ |  \__ \ (_) | | | | | |  | |  __/ |_| | |  | \__ \ |_| | (__ 
+ |_|   \___|_|  |___/\___/|_| |_| |_|  |_|\___|\__,_|_|  |_|___/\__|_|\___|
+                                                                           
+"""
 
 def _adjust_false_story_end(story_start, true_story_end, false_story_end, names):
     person_story_start = _extract_person(story_start, names)
@@ -245,39 +300,24 @@ def _extract_person(text, names):
         if 'I ' in text:
             return 'I'
 
-def save_dataset_as_tsv_list(dataset, path):
-    print(f'length of dataset: {len(dataset)}')
-    #for i in dataset:
-    #    if not isinstance(i, dict):
-    #        print(f'some sample is NOT a dictionary: {i}')
-    dataset = [item for item in dataset if item != None]
-    df = pd.DataFrame.from_dict(dataset, orient='columns')
-    df.to_csv(path, sep='\t', index=False, columns=['story_start_id', 'story_end_id', 'story_start', 'story_end', 'label'])
-
 def save_dataset_as_tsv(dataset, path):
     df = pd.DataFrame(dataset)
     df.to_csv(path, sep='\t', index=False, columns=['story_start_id', 'story_end_id', 'story_start', 'story_end', 'label'])
-
-def ablation_top1_train(path_train='./data/train_stories.csv',path_mapping='./data/train_stories_top_1_most_similar_titles.csv',path_names='./data/first_names.csv'):
-    ds_train_max_false = get_crossproduct_dataset_false(path_train=path_train, path_mapping=path_mapping, path_names=path_names)
-    ds_train_true = get_train_dataset_true(path_train=path_train, shuffle=False)
-
-    ds_train_max_false = pd.DataFrame(ds_train_max_false)
-
-    print(f"CREATING NEW TRAIN DATASET...")
-    ds_train = ds_train_max_false.append(ds_train_true, ignore_index=True)
-
-    print(f"SHUFFLE NEW TRAIN DATASET...")
-    ds_train = ds_train.sample(frac=1).reset_index(drop=True)
-
-    save_dataset_as_tsv(ds_train, path="./data/ds_train.tsv")
-    return ds_train
 
 def main():
     generate_and_save_init_test_results(path_cross="./data/ds_cross_product_false.tsv",  path_test_results="./data/test_results.tsv")
 
     ds_train_true = get_train_dataset_true(path_train='./data/train_stories.csv', shuffle=False)
     save_dataset_as_tsv(ds_train_true, path="./data/ds_train_true.tsv")
+
+    ds_train_ablation1 = get_ablation1_dataset()
+    save_dataset_as_tsv(ds_train_ablation1, path="./data/ds_train_ablation1.tsv")
+
+    ds_train_ablation2 = get_ablation2_dataset()
+    save_dataset_as_tsv(ds_train_ablation2, path="./data/ds_train_ablation2.tsv")
+
+    ds_train_ablation3 = get_ablation3_dataset()
+    save_dataset_as_tsv(ds_train_ablation3, path="./data/ds_train_ablation3.tsv")
 
     ds_valid = get_valid_dataset(path_valid='./data/cloze_test_val__spring2016 - cloze_test_ALL_val.csv', shuffle=False)
     save_dataset_as_tsv(ds_valid, path="./data/ds_valid.tsv")
@@ -292,5 +332,4 @@ def main():
     save_dataset_as_tsv(ds_cross_product_false, path="./data/ds_cross_product_false.tsv")
 
 if __name__ == '__main__':
-    print(ablation_top1_train())
-    #main()ds_cross_product_false
+    main()
