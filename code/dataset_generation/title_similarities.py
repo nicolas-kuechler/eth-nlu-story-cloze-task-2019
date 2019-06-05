@@ -1,3 +1,8 @@
+'''
+Needs to be run from within code/dataset_generation
+Trains an embedding on the story titles in which the names have been replaced by tags.
+'''
+
 import sys
 sys.path.append('../')
 import pandas as pd 
