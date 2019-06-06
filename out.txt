@@ -10,3 +10,39 @@ end idf
 start train generation
 start test generation
 end test generation
+start tfidf
+start idf
+end idf
+start train generation
+start test generation
+end test generation
+start tfidf
+start idf
+end idf
+start train generation
+start test generation
+end test generation
+start tfidf
+start idf
+end idf
+start train generation
+start test generation
+end test generation
+start tfidf
+start idf
+end idf
+start train generation
+start test generation
+end test generation
+start tfidf
+start idf
+end idf
+start train generation
+start test generation
+end test generation
+start tfidf
+start idf
+end idf
+start train generation
+start test generation
+end test generation

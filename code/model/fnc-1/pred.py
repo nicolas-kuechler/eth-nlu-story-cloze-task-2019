@@ -14,6 +14,8 @@
 
 ##Atttention For generating the data a huge amount of memory is neccesary
 
+#if no scratch set one by export SCRATCH=$PWD 
+
 # Import relevant packages and modules
 from util_data import * # pylint: disable=unused-wildcard-import
 import random
@@ -40,7 +42,7 @@ checkpoint_directory = os.environ['SCRATCH']+'/data/ucl/'
 
 # Initialise hyperparameters
 r = random.Random()
-lim_unigram = 20000
+lim_unigram = 1000
 target_size = 2
 hidden_size = 100
 train_keep_prob = 0.6
@@ -48,7 +50,7 @@ l2_alpha = 0.00001
 learn_rate = 0.01
 clip_ratio = 5
 batch_size_train = 500
-epochs = 50
+epochs = 20
 
 load_processed_data=False
 save_model_when_training=True

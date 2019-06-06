@@ -27,6 +27,7 @@ def run_bert_pred(epoch_dir):
                                                         f"--vocab_file={BERT_BASE_DIR}/vocab.txt",
                                                         f"--bert_config_file={BERT_BASE_DIR}/bert_config.json",
                                                         f"--init_checkpoint={checkpoint}",
+                                                        f"--predict_batch_size={32}",
                                                         f"--max_seq_length={MAX_SEQ_LENGTH}",
                                                         f"--output_dir={epoch_dir}"])
 
