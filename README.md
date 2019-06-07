@@ -2,8 +2,8 @@
 
 ## Usage Instructions
 
-Download, unzip and place data folder in root of the project: https://polybox.ethz.ch/index.php/s/I2OXxSchBkb5viF
-e.g `curl -o data.zip https://polybox.ethz.ch/index.php/s/I2OXxSchBkb5viF/download` and `unzip data.zip`
+Download, unzip and place data folder in root of the project: https://polybox.ethz.ch/index.php/s/VsYxJUwCMMxpeoQ
+e.g `curl -o data.zip https://polybox.ethz.ch/index.php/s/VsYxJUwCMMxpeoQ/download` and `unzip data.zip`
 
 ### Running on Leonhard Cluster
 `module load gcc/4.8.5 python_gpu/3.6.4 hdf5 eth_proxy`
