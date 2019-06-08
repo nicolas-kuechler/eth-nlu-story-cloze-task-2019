@@ -1,6 +1,7 @@
 import pandas as pd
 import subprocess, argparse
 import tensorflow as tf
+import os, time
 
 import dataset, prediction
 
@@ -13,7 +14,11 @@ parser.add_argument('--output_dir', help='output directory (suggested to use scr
 
 args = parser.parse_args()
 
-output_dir = args.output_dir
+
+RUN_ID = str(int(time.time())) # use current timestamp as runid
+output_dir = f"{args.output_dir}/runs/train_on_valid_{RUN_ID}"
+os.makedirs(output_dir)
+
 n_epoch = args.epochs
 init_ckpt_dir = args.init_ckpt_dir
 checkpoint = tf.train.latest_checkpoint(checkpoint_dir=init_ckpt_dir)
