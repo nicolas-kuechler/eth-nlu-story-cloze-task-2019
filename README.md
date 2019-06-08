@@ -13,8 +13,13 @@ use a virtual environment with the requirements from the root directory:
 `pip install -r path/to/requirements.txt`
 
 
-#### Run Training (Fine-Tuning with BERT)
+#### Run Training on Training Set (Fine-Tuning with BERT)
 `bsub -n 8 -W 12:00 -R "rusage[mem=16000, ngpus_excl_p=1]" python code/training.py --epochs 3 --output_dir $SCRATCH`
+
+(from the root of the project)
+
+#### Run Training on Validation Set (Fine-Tuning with BERT)
+`bsub -n 8 -W 4:00 -R "rusage[mem=16000, ngpus_excl_p=1]" python code/training_valid.py --epochs 3 --init_ckpt_dir $SCRATCH/runs/1559038542/epoch3 --output_dir $SCRATCH`
 
 (from the root of the project)
 
