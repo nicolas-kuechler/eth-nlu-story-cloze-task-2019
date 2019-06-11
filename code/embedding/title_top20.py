@@ -41,4 +41,5 @@ def main(topn=20):
     pd.DataFrame(res).to_csv(f'data/train_stories_top_{topn}_most_similar_titles.csv', header=None, index=None)
 
 if __name__ == '__main__':
-    main(1)
+    main(topn=20)
+    main(topn=1)
