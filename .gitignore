@@ -6,7 +6,7 @@ data/uncased_L-24_H-1024_A-16
 output
 /runs
 data/
-
+data.zip
 #leonhard logs
 lsf.*
 
