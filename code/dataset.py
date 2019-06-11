@@ -313,10 +313,10 @@ def main():
 
     ds_train_ablation2 = get_ablation2_dataset()
     save_dataset_as_tsv(ds_train_ablation2, path="./data/ds_train_ablation2.tsv")
-
+    """
     ds_train_ablation3 = get_ablation3_dataset()
     save_dataset_as_tsv(ds_train_ablation3, path="./data/ds_train_ablation3.tsv")
-
+    """
     ds_train_ablation4 = get_ablation4_dataset()
     save_dataset_as_tsv(ds_train_ablation4, path="./data/ds_train_ablation4.tsv")
     """

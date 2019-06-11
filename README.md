@@ -6,7 +6,7 @@
 
 ## Usage Instructions
 Download, unzip and place data folder in root of the project: https://polybox.ethz.ch/index.php/s/VsYxJUwCMMxpeoQ
-(e.g. `curl -o data.zip https://polybox.ethz.ch/index.php/s/VsYxJUwCMMxpeoQ/download` and `unzip data.zip`)
+(e.g. `curl -o data.zip https://polybox.ethz.ch/index.php/s/VsYxJUwCMMxpeoQ/download` and `unzip data.zip -d data`)
 
 
 ### Running on Leonhard Cluster
@@ -63,6 +63,7 @@ For every selected ablation study, the dataset is generated and then the fine-tu
 At the end the predictions are run to calculate validation and test accuracy. 
 
 #### Run FNC-1 Model
+make sure you you get all datasets ready. If you don't have them follow the instructions in the section 'Create Dataset from ROC Corpus'
 once run `bash startup_tf2.sh` in the root folder and to run model run `bsub -R "rusage[mem=16000, ngpus_excl_p=1]" <run_fnc1.sh`
 
 #### Dataset

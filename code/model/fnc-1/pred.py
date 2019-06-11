@@ -23,14 +23,17 @@ import numpy as np
 import tensorflow as tf
 import os
 import sys
-from metric import f1_score
+#from metric import f1_score
 
 
 # Prompt for mode
 mode ='train' #input('mode (load / train)? ')
 
 # Set file names
+#for general training set
 file_train = "./data/ds_train.tsv"
+#for training file from ablation study
+file_train = './data/ds_train_ablation3.tsv'
 file_val = './data/ds_valid.tsv'
 #TODO remove for actual training
 #file_train = file_val
@@ -39,10 +42,14 @@ file_predictions = os.environ['SCRATCH']+'/data/ucl/pred.tsv'
 dir_save_np = os.environ['SCRATCH']+'/data/ucl/data/'
 checkpoint_directory = os.environ['SCRATCH']+'/data/ucl/'
 
+#make sure paths exist
+dir = os.path.dirname(dir_save_np)
+if not os.path.exists(dir):
+    os.makedirs(dir)
 
 # Initialise hyperparameters
 r = random.Random()
-lim_unigram = 1000
+lim_unigram = 10000
 target_size = 2
 hidden_size = 100
 train_keep_prob = 0.6
@@ -50,7 +57,7 @@ l2_alpha = 0.00001
 learn_rate = 0.01
 clip_ratio = 5
 batch_size_train = 500
-epochs = 20
+epochs = 30
 
 load_processed_data=False
 save_model_when_training=True

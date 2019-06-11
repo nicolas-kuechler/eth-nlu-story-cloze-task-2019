@@ -1,0 +1,4 @@
+start tfidf
+start idf
+end idf
+start train generation
