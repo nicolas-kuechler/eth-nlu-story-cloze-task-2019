@@ -79,6 +79,7 @@ def run_ablation_training(ablation_dir, n_epoch):
                                                         "--do_predict_cross=false",
                                                         "--do_predict_valid=true",
                                                         "--do_predict_test=true",
+                                                        "--do_predict_eth_test=true",
                                                         f"--train_data_dir={ablation_dir}",
                                                         f"--data_dir={DATA_DIR}",
                                                         f"--vocab_file={BERT_BASE_DIR}/vocab.txt",

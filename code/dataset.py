@@ -262,7 +262,6 @@ def _adjust_false_story_end(story_start, true_story_end, false_story_end, names)
 
 
 def _replace_person(text, old_person, new_person):
-    # TODO: use more sophisticated way to change person
     if old_person == 'He' or old_person == 'She' or old_person == 'They' or old_person== 'I':
         return text.replace(old_person + " ", new_person + " ")
     if old_person == 'he' or old_person == 'she' or old_person == 'they':
@@ -271,12 +270,9 @@ def _replace_person(text, old_person, new_person):
     return text.replace(old_person, new_person)
 
 def _extract_person(text, names):
-    # TODO: use more sophisticated way to extract person or maybe even multiple people
-
-    # TODO: problem: Ben's does not identify Ben -> USE BERT BASIC TOKENIZER
 
     persons = set()
-    # TODO: use more sophisticated tokenizer (this has problem of Name, and Name.)
+    
     for word in text.split(' '):
         if word in names:
             persons.add(word)
@@ -305,10 +301,12 @@ def save_dataset_as_tsv(dataset, path):
     df.to_csv(path, sep='\t', index=False, columns=['story_start_id', 'story_end_id', 'story_start', 'story_end', 'label'])
 
 def main():
-    generate_and_save_init_test_results(path_cross="./data/ds_cross_product_false.tsv",  path_test_results="./data/test_results.tsv")
 
     ds_train_true = get_train_dataset_true(path_train='./data/train_stories.csv', shuffle=False)
     save_dataset_as_tsv(ds_train_true, path="./data/ds_train_true.tsv")
+
+    """
+    # These are commented out because the ablation.py already generates them when needed
 
     ds_train_ablation1 = get_ablation1_dataset()
     save_dataset_as_tsv(ds_train_ablation1, path="./data/ds_train_ablation1.tsv")
@@ -318,6 +316,10 @@ def main():
 
     ds_train_ablation3 = get_ablation3_dataset()
     save_dataset_as_tsv(ds_train_ablation3, path="./data/ds_train_ablation3.tsv")
+
+    ds_train_ablation4 = get_ablation4_dataset()
+    save_dataset_as_tsv(ds_train_ablation4, path="./data/ds_train_ablation4.tsv")
+    """
 
     ds_valid = get_valid_dataset(path_valid='./data/cloze_test_val__spring2016 - cloze_test_ALL_val.csv', shuffle=False)
     save_dataset_as_tsv(ds_valid, path="./data/ds_valid.tsv")
@@ -330,6 +332,8 @@ def main():
 
     ds_cross_product_false = get_crossproduct_dataset_false(path_train='./data/train_stories.csv', path_mapping='./data/train_stories_top_20_most_similar_titles.csv', path_names='./data/first_names.csv')
     save_dataset_as_tsv(ds_cross_product_false, path="./data/ds_cross_product_false.tsv")
+
+    generate_and_save_init_test_results(path_cross="./data/ds_cross_product_false.tsv",  path_test_results="./data/init/cross_results.tsv")
 
 if __name__ == '__main__':
     main()
