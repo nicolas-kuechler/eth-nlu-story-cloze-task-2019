@@ -20,6 +20,11 @@ use a virtual environment with the requirements from the root directory:
 pip install -r path/to/requirements.txt
 ```
 
+#### Reproduce Results Quick Version
+1. Download and unzip data folder from polybox (see above)
+2. Download epoch directory of fine-tuned BERT checkpoints (TODO: download link)
+3. Run Predictions with adjusted EPOCH_DIR param: `bsub -n 2 -W 4:00 -R "rusage[mem=16000, ngpus_excl_p=1]" python code/prediction.py --epoch_dir $SCRATCH/runs/{EPOCH_DIR}`
+
 #### Run Training on Training Set (Fine-Tuning with BERT)
 ```
 bsub -n 8 -W 12:00 -R "rusage[mem=16000, ngpus_excl_p=1]" python code/training.py --epochs 3 --output_dir $SCRATCH
@@ -106,8 +111,8 @@ The second command generates an index table with the 20 most similar samples per
 
 ##### Train Embeddings on Entire Stories
 ```
-bsub -n 2 -W 4:00 -R "rusage[mem=16000, ngpus_excl_p=1]" python code/dataset_generation/story_similarities.py
-bsub -n 2 -W 4:00 -R "rusage[mem=16000, ngpus_excl_p=1]" python code/dataset_generation/stories_top1.py
+bsub -n 2 -W 4:00 -R "rusage[mem=16000, ngpus_excl_p=1]" python code/embedding/story_similarities.py
+bsub -n 2 -W 4:00 -R "rusage[mem=16000, ngpus_excl_p=1]" python code/embedding/stories_top1.py
 ```
 (from the root of the project)
 
