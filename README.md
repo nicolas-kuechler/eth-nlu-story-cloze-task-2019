@@ -20,10 +20,10 @@ use a virtual environment with the requirements from the root directory:
 pip install -r path/to/requirements.txt
 ```
 
-#### Reproduce Results Quick Version
+#### Reproduce Results: Quick Version
 1. Download and unzip data folder from polybox (see above)
-2. Download epoch directory of fine-tuned BERT checkpoints (TODO: download link)
-3. Run Predictions with adjusted EPOCH_DIR param: `bsub -n 2 -W 4:00 -R "rusage[mem=16000, ngpus_excl_p=1]" python code/prediction.py --epoch_dir $SCRATCH/runs/{EPOCH_DIR}`
+2. Download epoch directory of fine-tuned BERT checkpoints from polybox (https://polybox.ethz.ch/index.php/s/fV2zUdsijdBLKjc)
+3. Run Predictions with adjusted EPOCH_DIR param based on where you placed the checkpoints: `bsub -n 2 -W 4:00 -R "rusage[mem=16000, ngpus_excl_p=1]" python code/prediction.py --epoch_dir $SCRATCH/runs/{EPOCH_DIR}`
 
 #### Run Training on Training Set (Fine-Tuning with BERT)
 ```
@@ -119,3 +119,13 @@ bsub -n 2 -W 4:00 -R "rusage[mem=16000, ngpus_excl_p=1]" python code/embedding/s
 
 The first command trains embeddings based on the similarity of stories. 
 The second command generates an index table with the most similar sample.
+
+
+## Troubleshooting
+
+- Training the BERT model requires a lot of memory. If any of the commands above fail due to an out of memory error, increase the memory or reduce the batch size in the respective code.
+- The code depends on files being in the correct position. If any of the commands fail check if you have all the required files in the correct place.
+
+## Credits
+
+The BERT code is based on https://github.com/google-research/bert and adjusted to our requirements.
