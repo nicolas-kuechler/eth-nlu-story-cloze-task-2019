@@ -10,6 +10,8 @@ data.zip
 #leonhard logs
 lsf.*
 
+/.vscode
+
 /out
 /logs
 **/logs/
